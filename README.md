@@ -2,29 +2,7 @@
 
 A block-based coding puzzle game built with Django, featuring a **Neubrutalist + Hand-Drawn Fusion** aesthetic. Players snap together chunky code blocks (Move Forward, Turn Left, Turn Right, Repeat) to guide a sketchy robot mascot across obstacle mazes to the flag before the clock runs out.
 
-## Quick start
 
-```bash
-# from the project root
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install django
-
-python manage.py migrate
-python manage.py runserver
-```
-
-Then open **http://127.0.0.1:8000/** in your browser.
-
-No database setup is required beyond the default `migrate` — level configurations live in `game/levels.py` and player progress lives in browser `localStorage`.
-
-## Visual Design & Aesthetic Concept
-
-- **Neubrutalist Bones**: Thick `#0B2A19` borders (`3px`), solid hard offset shadows (`6px` offset, 0-blur), flat saturated color blocks, chunky `Archivo Black` and `Fredoka` typography, and responsive hover/active translation physics.
-- **Hand-Drawn Skin**: Sketchy robot mascot illustration SVG, wobbly marker-style double-underlines, rotated `-3deg` sticker tags on level cards, wax-seal checkmark stamps, padlock doodle icons, and hand-drawn confetti doodles.
-- **Color Palette**:
-  - Calm surfaces: `--turquoise: #1FAFA0`, `--forest: #14432A`, `--forest-deep: #0B2A19`, `--sky: #BFE8EA`, `--sky-pale: #E4F6F2`, `--cream: #FBF3E3`.
-  - Pop accents: `--coral: #FF6B4A` (Run CTA / Hard), `--sun: #FFC94A` (Medium / Warnings), `--grape: #6C5CE7` (Repeat blocks), `--bad-nb: #E8483A` (Collisions & Time alert).
 
 ## Levels & Gameplay
 
@@ -54,15 +32,3 @@ No database setup is required beyond the default `migrate` — level configurati
   - <kbd>Esc</kbd>: Halt robot
   - <kbd>1</kbd> / <kbd>2</kbd> / <kbd>4</kbd>: Switch animation speed
 
-## Running Tests
-
-```bash
-# Run Django test suite
-python manage.py test
-
-# Run programmatic level solution verification
-node tests/verify_solutions.js
-
-# Run DOM drag-and-drop simulation suite
-node tests/test_drag_drop_dom.js
-```
