@@ -1,0 +1,161 @@
+{% extends "game/base.html" %}
+{% load static %}
+{% block title %}Level {{ level.id }}: {{ level.name }} · Robot Runner{% endblock %}
+
+{% block content %}
+{{ level|json_script:"level-data" }}
+<div class="play-wrap" data-total-levels="{{ total_levels }}">
+
+    <div class="play-header">
+        <a href="{% url 'game:home' %}" class="back-link nb-surface">← All Levels</a>
+        <div class="level-title-section">
+            <span class="sticker-badge sticker-{{ level.name|lower }}">{{ level.name }}</span>
+            <h1 class="play-level-heading">Level {{ level.id }}: {{ level.name }}</h1>
+        </div>
+        <div class="timer-box nb-surface" id="main-timer-box">
+            <span class="timer-label">TIME LEFT</span>
+            <span class="timer-value" id="main-timer">3:00</span>
+        </div>
+    </div>
+
+    <div class="hint-banner nb-surface">
+        <span class="hint-icon">💡</span>
+        <span class="hint-text"><strong>Mission Intel:</strong> {{ level.hint }}</span>
+    </div>
+
+    <div class="play-body">
+        <div class="palette-col">
+            <div class="col-header nb-surface">
+                <h3>Block Palette</h3>
+                <span class="col-sub">Drag or click to add</span>
+            </div>
+            <div id="palette" class="palette"></div>
+        </div>
+
+        <div class="workspace-col">
+            <div class="workspace-top nb-surface">
+                <div class="col-header-inner">
+                    <h3>Your Program</h3>
+                    <span class="col-sub">Supports drag & in-slot "+ Add"</span>
+                </div>
+                <div class="speed-controls" title="Execution Speed">
+                    <span class="speed-label">Speed:</span>
+                    <button class="speed-btn nb-surface active" data-speed="1x">1×</button>
+                    <button class="speed-btn nb-surface" data-speed="2x">2×</button>
+                    <button class="speed-btn nb-surface" data-speed="4x">4×</button>
+                </div>
+            </div>
+
+            <div id="workspace" class="workspace nb-surface" data-root="true"></div>
+
+            <div class="workspace-actions">
+                <button id="run-btn" class="btn btn-run nb-surface" title="Execute algorithm (Space)">▶ Run</button>
+                <button id="step-btn" class="btn btn-step nb-surface" title="Execute 1 action at a time">↷ Step</button>
+                <button id="stop-btn" class="btn btn-stop nb-surface" disabled title="Halt execution (Esc)">■ Stop</button>
+                <button id="clear-btn" class="btn btn-clear nb-surface" title="Clear all blocks">Clear</button>
+            </div>
+        </div>
+
+        <div class="grid-col">
+            <div class="col-header nb-surface">
+                <h3>Grid Arena</h3>
+                <span class="col-sub">{{ level.grid_width }}×{{ level.grid_height }} Coords</span>
+            </div>
+            <div id="grid-stage" class="grid-stage nb-surface"></div>
+            <div id="status-line" class="status-line nb-surface">Build your program, then press Run.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Obstacle hit modal -->
+<div id="hit-modal" class="modal hidden">
+    <div class="modal-card modal-hit nb-surface">
+        <div class="modal-mascot-wrap">
+            <svg class="hit-starburst-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 5 L62 35 L95 25 L75 52 L98 78 L65 75 L50 95 L35 75 L2 78 L25 52 L5 25 L38 35 Z" fill="#FFC94A" stroke="#0B2A19" stroke-width="3"/>
+                <text x="50" y="58" font-family="'Archivo Black', sans-serif" font-size="20" fill="#E8483A" text-anchor="middle">CRASH!</text>
+            </svg>
+        </div>
+        <h2>Obstacle Collided!</h2>
+        <p>The robot safely returned to dock. Fix your code within the recovery window:</p>
+        <div class="sub-timer nb-surface" id="sub-timer">1:00</div>
+        <button id="hit-modal-close" class="btn btn-run nb-surface">Resume Coding</button>
+    </div>
+</div>
+
+<!-- Level complete modal -->
+<div id="win-modal" class="modal hidden">
+    <div class="modal-card modal-win nb-surface">
+        <div class="modal-mascot-wrap">
+            <svg class="win-mascot-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Antenna -->
+                <path d="M50 8 Q52 16 50 24" stroke="#0B2A19" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="50" cy="8" r="5" fill="#FF6B4A" stroke="#0B2A19" stroke-width="2.5"/>
+                <!-- Cheering Arms Raised -->
+                <path d="M22 55 Q10 40 14 25" stroke="#0B2A19" stroke-width="4" stroke-linecap="round" fill="none"/>
+                <circle cx="14" cy="25" r="4.5" fill="#FFC94A" stroke="#0B2A19" stroke-width="2.5"/>
+                <path d="M78 55 Q90 40 86 25" stroke="#0B2A19" stroke-width="4" stroke-linecap="round" fill="none"/>
+                <circle cx="86" cy="25" r="4.5" fill="#FFC94A" stroke="#0B2A19" stroke-width="2.5"/>
+                <!-- Body -->
+                <rect x="22" y="24" width="56" height="52" rx="12" fill="#1FAFA0" stroke="#0B2A19" stroke-width="3.5"/>
+                <rect x="30" y="32" width="40" height="22" rx="6" fill="#FBF3E3" stroke="#0B2A19" stroke-width="2.5"/>
+                <circle cx="40" cy="43" r="4" fill="#0B2A19"/>
+                <circle cx="60" cy="43" r="4" fill="#0B2A19"/>
+                <!-- Big Happy Smile -->
+                <path d="M38 62 Q50 72 62 62" stroke="#0B2A19" stroke-width="3" stroke-linecap="round" fill="none"/>
+                <!-- Feet -->
+                <rect x="34" y="76" width="10" height="12" rx="3" fill="#FFC94A" stroke="#0B2A19" stroke-width="2.5"/>
+                <rect x="56" y="76" width="10" height="12" rx="3" fill="#FFC94A" stroke="#0B2A19" stroke-width="2.5"/>
+            </svg>
+        </div>
+        <h2>Mission Accomplished!</h2>
+        <div class="win-stars" id="win-stars">⭐⭐⭐</div>
+        <div class="win-time-badge nb-surface" id="win-time"></div>
+        <p id="win-message" class="win-message"></p>
+        <div class="modal-actions">
+            <a id="next-level-btn" href="#" class="btn btn-run nb-surface">Next Level →</a>
+            <a href="{% url 'game:home' %}" class="btn btn-clear nb-surface">All Levels</a>
+        </div>
+    </div>
+</div>
+
+<!-- Level failed modal -->
+<div id="fail-modal" class="modal hidden">
+    <div class="modal-card modal-fail nb-surface">
+        <div class="modal-mascot-wrap">
+            <svg class="fail-mascot-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Antenna -->
+                <path d="M50 10 L50 24" stroke="#0B2A19" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="50" cy="10" r="5" fill="#FFC94A" stroke="#0B2A19" stroke-width="2.5"/>
+                <!-- Body -->
+                <rect x="22" y="24" width="56" height="52" rx="12" fill="#1FAFA0" stroke="#0B2A19" stroke-width="3.5"/>
+                <rect x="30" y="32" width="40" height="22" rx="6" fill="#FBF3E3" stroke="#0B2A19" stroke-width="2.5"/>
+                <!-- Confused Eyes -->
+                <line x1="37" y1="40" x2="43" y2="46" stroke="#0B2A19" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="43" y1="40" x2="37" y2="46" stroke="#0B2A19" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="57" y1="40" x2="63" y2="46" stroke="#0B2A19" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="63" y1="40" x2="57" y2="46" stroke="#0B2A19" stroke-width="2.5" stroke-linecap="round"/>
+                <!-- Sweat Drop -->
+                <path d="M78 28 Q84 38 80 44 Q76 48 72 44 Q72 38 78 28 Z" fill="#BFE8EA" stroke="#0B2A19" stroke-width="2"/>
+                <!-- Straight mouth -->
+                <line x1="40" y1="64" x2="60" y2="64" stroke="#0B2A19" stroke-width="3" stroke-linecap="round"/>
+                <!-- Feet -->
+                <rect x="34" y="76" width="10" height="12" rx="3" fill="#FFC94A" stroke="#0B2A19" stroke-width="2.5"/>
+                <rect x="56" y="76" width="10" height="12" rx="3" fill="#FFC94A" stroke="#0B2A19" stroke-width="2.5"/>
+            </svg>
+        </div>
+        <h2 id="fail-title">Time's Up!</h2>
+        <p id="fail-message">You ran out of time. Review your algorithm and give it another go!</p>
+        <div class="modal-actions">
+            <button id="retry-btn" class="btn btn-run nb-surface">Retry Mission</button>
+            <a href="{% url 'game:home' %}" class="btn btn-clear nb-surface">All Levels</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'game/js/blocks.js' %}?v=6"></script>
+<script src="{% static 'game/js/interpreter.js' %}?v=6"></script>
+<script src="{% static 'game/js/game.js' %}?v=6"></script>
+{% endblock %}
